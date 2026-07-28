@@ -1,0 +1,1916 @@
+# 《盼盼与熊大的妙妙屋》项目开发任务书
+
+## 一、项目定位
+
+### 1.1 项目名称
+
+**盼盼与熊大的妙妙屋**
+
+英文内部代号：
+
+```text
+PanPan Wonder House
+```
+
+项目代码仓库建议：
+
+```text
+panpan-wonder-house
+```
+
+### 1.2 项目目标
+
+建设一个个人小游戏网站，用于持续收录盼盼平时创作的 HTML5 小游戏。
+
+网站包含：
+
+1. 游客访问的小游戏前台。
+2. 仅管理员可访问的后台管理系统。
+3. 标准化游戏包上传、校验、发布及版本管理。
+4. 网站访问和游戏游玩数据统计。
+5. 手机、平板和电脑自适应显示。
+6. 网站广告位及游戏广告接口预留。
+7. 后续可持续增加游戏，不需要每次重新修改网站代码。
+
+### 1.3 MVP 暂不包含
+
+首个版本不开发以下功能：
+
+* 游客注册和登录。
+* 评论、点赞和社交功能。
+* 在线排行榜。
+* 游戏云存档。
+* 积分、会员或付费系统。
+* 实际广告投放。
+* 多管理员权限系统。
+* 原生 Android 或 iOS 客户端。
+
+游客进入网站时直接浏览游戏，不显示登录按钮，不弹出登录提示，也不制造“登录后解锁更多”的互联网惯用焦虑。
+
+---
+
+# 二、整体架构
+
+## 2.1 技术栈
+
+| 模块     | 技术方案                     |
+| ------ | ------------------------ |
+| 前台网站   | Next.js 当前稳定版、TypeScript |
+| 后台管理   | 与前台共用 Next.js 项目，路径独立    |
+| 页面样式   | Tailwind CSS             |
+| 数据库    | PostgreSQL               |
+| 数据访问   | Prisma ORM               |
+| 游戏文件存储 | S3 兼容对象存储                |
+| 本地对象存储 | MinIO（本机进程）              |
+| 游戏运行   | 独立游戏域名、iframe            |
+| 后台登录   | 管理员账号密码、数据库 Session      |
+| 数据统计   | 自建匿名事件统计                 |
+| 本地开发   | 本机 PostgreSQL + 本机 MinIO + `npm run dev` |
+| 自动化测试  | Vitest、Playwright        |
+| 部署方式   | Node.js 直接运行（`npm run build` + `npm run start`） |
+| 反向代理   | 可选 Nginx 或云平台网关          |
+
+本项目体量小，**不使用 Docker / Docker Compose**。数据库和对象存储都在本机安装启动即可。
+
+所有依赖使用初始化时的稳定版本，并提交 lock 文件，不使用浮动版本。
+
+## 2.2 域名结构
+
+建议设计为：
+
+```text
+www.example.com        网站前台
+www.example.com/admin  管理后台
+games.example.com      小游戏静态文件
+```
+
+游戏域名不得保存后台登录 Cookie，也不得与后台共用身份认证信息。
+
+开发环境对应：
+
+```text
+http://localhost:3000
+http://localhost:3000/admin
+http://localhost:9000 或 MinIO 地址
+```
+
+## 2.3 核心原则
+
+1. 网站与游戏代码相互隔离。
+2. 游戏出现错误时不得影响网站主页面。
+3. 游戏通过统一协议向网站报告开始、结束、得分和错误。
+4. 所有游戏必须能够独立运行。
+5. 上传新游戏不需要重新编译主站。
+6. 已发布游戏版本不可直接覆盖，只能发布新版本。
+7. 游戏可以回滚到以前的版本。
+8. 游戏包必须经过自动校验后才能发布。
+
+---
+
+# 三、前台网站规划
+
+## 3.1 页面结构
+
+### 首页 `/`
+
+首页包含：
+
+* 网站名称和原创 Logo。
+* 简短介绍。
+* 推荐游戏区域。
+* 全部游戏列表。
+* 游戏分类或标签筛选。
+* 游戏标题搜索。
+* 游戏热度标识。
+* 页脚。
+* 预留的网站广告组件。
+
+不得出现：
+
+* 登录入口。
+* 注册提示。
+* 强制弹窗。
+* 自动播放音乐。
+* 空白广告框。
+
+### 游戏页面 `/game/{slug}`
+
+包含：
+
+* 返回首页按钮。
+* 游戏标题。
+* 游戏运行区域。
+* 全屏按钮。
+* 静音按钮。
+* 手机横竖屏提示。
+* 加载状态。
+* 游戏加载失败提示。
+* 游戏简介。
+* 操作方式说明。
+* 其他游戏推荐。
+* 预留游戏页广告组件。
+
+游戏实际内容通过独立域名的 iframe 加载。
+
+示例：
+
+```text
+https://games.example.com/memory-card/1.0.0/index.html
+```
+
+### 其他页面
+
+```text
+/about          关于妙妙屋
+/privacy        隐私说明
+/404            页面不存在
+```
+
+## 3.2 首页游戏卡片
+
+每个游戏卡片显示：
+
+* 封面图。
+* 游戏标题。
+* 一句话介绍。
+* 分类标签。
+* 热度。
+* 是否为新游戏。
+* 是否推荐。
+
+点击整个卡片直接进入游戏页面。
+
+## 3.3 响应式要求
+
+### 手机
+
+* 游戏列表默认两列。
+* 页面宽度不得产生横向滚动。
+* 游戏按钮适合触摸操作。
+* 游戏区域优先占满可用宽度。
+* 支持安全区域 `safe-area-inset`。
+* 不依赖鼠标悬停才能操作。
+
+### 平板
+
+* 游戏列表三至四列。
+* 游戏区域根据屏幕比例自动调整。
+
+### 电脑
+
+* 游戏列表四至六列。
+* 内容居中显示。
+* 游戏区域设置合理最大宽度。
+* 支持键盘、鼠标和全屏。
+
+---
+
+# 四、视觉设计要求
+
+整体风格：
+
+```text
+温暖、可爱、轻松、带一点脑洞感，但不能像低龄儿童网站。
+```
+
+建议元素：
+
+* 妙妙屋。
+* 星星。
+* 云朵。
+* 游戏机。
+* 灯泡。
+* 小熊和女孩的原创抽象形象。
+* 手绘感的小装饰。
+
+“熊大”只作为项目名称使用。Logo、插图、角色和图标必须原创，不得直接使用《熊出没》的角色形象、截图、字体或其他素材，除非已获得授权。
+
+网站应支持浅色和深色主题，但 MVP 可以先完成浅色主题。
+
+---
+
+# 五、游戏包统一规范
+
+## 5.1 文件名称
+
+游戏包必须使用 ZIP 格式：
+
+```text
+game-{slug}-v{version}.zip
+```
+
+示例：
+
+```text
+game-memory-card-v1.0.0.zip
+```
+
+要求：
+
+* `slug` 只能包含小写字母、数字和短横线。
+* 版本号使用语义化格式。
+* ZIP 根目录直接放游戏文件。
+* ZIP 内不得再套一层同名文件夹。
+
+错误示例：
+
+```text
+game-memory-card-v1.0.0.zip
+└── game-memory-card-v1.0.0/
+    └── index.html
+```
+
+正确示例：
+
+```text
+game-memory-card-v1.0.0.zip
+├── manifest.json
+├── index.html
+├── cover.webp
+├── icon.png
+├── css/
+├── js/
+└── assets/
+```
+
+## 5.2 标准目录
+
+```text
+/
+├── manifest.json             必须
+├── index.html                必须
+├── cover.webp                必须
+├── icon.png                  可选
+├── README.md                 可选
+├── css/
+│   └── game.css
+├── js/
+│   ├── game.js
+│   └── game-bridge.js
+├── assets/
+│   ├── images/
+│   ├── audio/
+│   └── fonts/
+└── screenshots/
+    ├── 01.webp
+    └── 02.webp
+```
+
+## 5.3 manifest.json 格式
+
+```json
+{
+  "schemaVersion": "1.0",
+  "id": "memory-card",
+  "slug": "memory-card",
+  "title": "记忆翻翻乐",
+  "shortDescription": "翻开卡片，找出所有相同图案。",
+  "description": "一个适合手机和电脑游玩的记忆小游戏。",
+  "version": "1.0.0",
+  "author": "PanPan Lab",
+  "entry": "index.html",
+  "cover": "cover.webp",
+  "icon": "icon.png",
+  "tags": ["益智", "休闲"],
+  "orientation": "any",
+  "controls": ["touch", "mouse", "keyboard"],
+  "display": {
+    "aspectRatio": "16:9",
+    "minWidth": 320,
+    "maxWidth": 1920,
+    "supportsFullscreen": true
+  },
+  "permissions": {
+    "audio": true,
+    "storage": true,
+    "fullscreen": true,
+    "networkDomains": []
+  },
+  "analytics": {
+    "enabled": true
+  },
+  "adCapabilities": {
+    "banner": false,
+    "interstitial": true,
+    "rewarded": true
+  }
+}
+```
+
+## 5.4 manifest 字段规则
+
+| 字段               | 规则                             |
+| ---------------- | ------------------------------ |
+| schemaVersion    | 当前固定为 `1.0`                    |
+| id               | 游戏永久 ID，发布后不得修改                |
+| slug             | URL 标识，不得与其他游戏重复               |
+| title            | 2 至 30 个字符                     |
+| shortDescription | 最多 60 个字符                      |
+| description      | 最多 500 个字符                     |
+| version          | `x.y.z` 格式                     |
+| entry            | 默认 `index.html`                |
+| cover            | 必须为 WebP                       |
+| icon             | PNG，建议透明背景                     |
+| tags             | 最多 5 个                         |
+| orientation      | `portrait`、`landscape` 或 `any` |
+| controls         | touch、mouse、keyboard 中的一种或多种   |
+| networkDomains   | 游戏允许访问的外部域名白名单                 |
+| adCapabilities   | 表示游戏将来支持的广告类型，不代表现在启用          |
+
+## 5.5 文件限制
+
+MVP 默认限制：
+
+| 项目      |              限制 |
+| ------- | --------------: |
+| ZIP 压缩包 |      不超过 100 MB |
+| 解压后总大小  |      不超过 300 MB |
+| 单个文件    |       不超过 30 MB |
+| 文件数量    |     不超过 2,000 个 |
+| 封面图     | 建议 1200×900，4:3 |
+| 封面大小    |        不超过 2 MB |
+| 图标      |      建议 512×512 |
+| 截图数量    |          最多 6 张 |
+
+## 5.6 禁止内容
+
+游戏包不得包含：
+
+```text
+.exe
+.dll
+.so
+.dylib
+.apk
+.ipa
+.php
+.jsp
+.asp
+.aspx
+.sh
+.bat
+.cmd
+.ps1
+.py
+.jar
+```
+
+同时禁止：
+
+* ZIP 路径穿越，例如 `../../file`。
+* 加密 ZIP。
+* ZIP 炸弹。
+* 服务端代码。
+* 外部 iframe。
+* 未声明的网络请求。
+* 外部 CDN 依赖。
+* 第三方统计脚本。
+* 第三方广告脚本。
+* 加密或明显混淆的 JavaScript。
+* `eval()` 和 `new Function()`。
+* 访问父页面 DOM。
+* 读取网站后台 Cookie。
+* 自动跳转顶层页面。
+* 未经操作自动播放声音。
+
+## 5.7 HTML5 游戏开发要求
+
+每个游戏必须满足：
+
+1. 包含 viewport 设置。
+
+```html
+<meta
+  name="viewport"
+  content="width=device-width, initial-scale=1, viewport-fit=cover"
+/>
+```
+
+2. 所有资源使用相对路径。
+
+正确：
+
+```text
+./assets/images/player.webp
+```
+
+错误：
+
+```text
+/assets/images/player.webp
+```
+
+3. 不依赖外部网络即可启动。
+4. 首屏必须有加载状态。
+5. 不得在加载后立即播放声音。
+6. 必须同时处理触摸事件和鼠标事件。
+7. 横竖屏不支持时必须显示明确提示。
+8. 游戏退出后不得继续播放音频。
+9. 游戏应捕获未处理异常并上报。
+10. 游戏本地存档必须使用独立命名空间：
+
+```text
+panpan_game_{gameId}_{key}
+```
+
+---
+
+# 六、网站与游戏通信协议
+
+游戏与主站使用 `window.postMessage` 通信。
+
+## 6.1 游戏发送给主站
+
+统一格式：
+
+```json
+{
+  "source": "panpan-game",
+  "version": "1.0",
+  "type": "GAME_READY",
+  "payload": {}
+}
+```
+
+支持以下事件：
+
+| 事件                 | 说明       |
+| ------------------ | -------- |
+| GAME_READY         | 游戏资源加载完成 |
+| GAME_START         | 玩家开始一局   |
+| GAME_PAUSE         | 游戏暂停     |
+| GAME_RESUME        | 游戏继续     |
+| GAME_END           | 一局结束     |
+| SCORE_UPDATE       | 分数更新     |
+| LEVEL_COMPLETE     | 关卡完成     |
+| GAME_ERROR         | 游戏发生错误   |
+| RESIZE_REQUEST     | 请求调整游戏区域 |
+| FULLSCREEN_REQUEST | 请求进入全屏   |
+| AD_REQUEST         | 请求展示广告   |
+
+游戏结束示例：
+
+```json
+{
+  "source": "panpan-game",
+  "version": "1.0",
+  "type": "GAME_END",
+  "payload": {
+    "score": 850,
+    "durationSeconds": 92,
+    "result": "completed"
+  }
+}
+```
+
+## 6.2 主站发送给游戏
+
+| 事件           | 说明       |
+| ------------ | -------- |
+| HOST_INIT    | 初始化游戏    |
+| HOST_PAUSE   | 主站要求暂停   |
+| HOST_RESUME  | 主站要求继续   |
+| AUDIO_CHANGE | 静音状态发生变化 |
+| AD_RESULT    | 返回广告结果   |
+
+初始化示例：
+
+```json
+{
+  "source": "panpan-host",
+  "version": "1.0",
+  "type": "HOST_INIT",
+  "payload": {
+    "gameId": "memory-card",
+    "sessionId": "anonymous-session-id",
+    "locale": "zh-CN",
+    "muted": false,
+    "adsEnabled": false
+  }
+}
+```
+
+当前广告关闭时，收到 `AD_REQUEST` 后统一返回：
+
+```json
+{
+  "source": "panpan-host",
+  "version": "1.0",
+  "type": "AD_RESULT",
+  "payload": {
+    "status": "disabled",
+    "rewardGranted": false
+  }
+}
+```
+
+游戏不得因为广告关闭而无法继续。
+
+---
+
+# 七、游戏运行安全方案
+
+游戏 iframe 建议使用：
+
+```html
+<iframe
+  sandbox="allow-scripts allow-same-origin allow-pointer-lock"
+  allow="fullscreen"
+  referrerpolicy="no-referrer"
+></iframe>
+```
+
+同时执行以下限制：
+
+1. 游戏文件放在独立域名。
+2. 游戏域名不设置管理员 Cookie。
+3. 主站只接受来自指定游戏域名的消息。
+4. 每条消息校验 `source`、`version`、`type` 和数据结构。
+5. 游戏页面配置独立 CSP。
+6. 默认禁止访问外部域名。
+7. 网络白名单必须来自 `manifest.json`。
+8. 游戏上传后先进入预览状态，不直接公开。
+9. 服务器保存 ZIP 的 SHA-256。
+10. 每次发布保存操作日志。
+
+---
+
+# 八、后台管理系统
+
+## 8.1 后台入口
+
+```text
+/admin
+```
+
+公开网站不显示后台入口。
+
+未登录访问后台时，才显示管理员登录页面。
+
+## 8.2 后台菜单
+
+```text
+仪表盘
+游戏管理
+上传游戏
+数据分析
+错误日志
+广告配置
+操作记录
+系统设置
+```
+
+## 8.3 仪表盘指标
+
+顶部指标卡：
+
+* 今日访问量 PV。
+* 今日独立访客 UV。
+* 今日游戏启动次数。
+* 近 7 日游戏启动次数。
+* 平均游玩时长。
+* 游戏完成率。
+* 已发布游戏数量。
+* 游戏错误数量。
+
+图表及列表：
+
+* 最近 30 天访问趋势。
+* 最近 30 天游戏启动趋势。
+* 热门游戏排行。
+* 游戏平均游玩时长排行。
+* 设备类型占比。
+* 手机系统和浏览器分布。
+* 访问来源。
+* 最近上传记录。
+* 最近游戏错误。
+* 对象存储空间使用量。
+
+## 8.4 热度计算
+
+每个游戏每天计算一次热度分，范围 0 至 100。
+
+建议权重：
+
+```text
+近7日启动次数        45%
+近7日独立玩家数      25%
+平均游玩时长         15%
+游戏完成率           10%
+重复游玩率            5%
+```
+
+各指标先按照当前所有已发布游戏进行标准化，再计算总分。
+
+首页可以显示：
+
+```text
+热度 86
+本周热门
+新游戏
+盼盼推荐
+```
+
+“盼盼推荐”由管理员手动设置，不参与热度计算，免得算法连屋主都敢顶嘴。
+
+## 8.5 游戏管理功能
+
+游戏列表字段：
+
+* 封面。
+* 标题。
+* slug。
+* 当前版本。
+* 状态。
+* 热度。
+* 发布日期。
+* 最近更新时间。
+* 启动次数。
+* 操作。
+
+游戏状态：
+
+```text
+DRAFT       草稿
+VALIDATING  校验中
+INVALID     校验失败
+READY       校验通过
+PUBLISHED   已发布
+UNPUBLISHED 已下架
+ARCHIVED    已归档
+```
+
+支持操作：
+
+* 新建游戏。
+* 上传游戏包。
+* 查看校验结果。
+* 在线预览。
+* 编辑标题和简介。
+* 设置封面。
+* 设置标签。
+* 设置推荐。
+* 调整排序。
+* 发布。
+* 下架。
+* 上传新版本。
+* 查看历史版本。
+* 回滚版本。
+* 删除草稿。
+* 查看游戏统计。
+* 查看错误日志。
+
+已发布版本不得物理删除，只允许归档。
+
+---
+
+# 九、游戏上传流程
+
+## 9.1 上传步骤
+
+后台使用分步流程：
+
+### 第一步：选择 ZIP
+
+显示：
+
+* 文件名。
+* 文件大小。
+* SHA-256。
+* 上传进度。
+
+### 第二步：自动校验
+
+依次执行：
+
+1. ZIP 格式检查。
+2. 压缩包大小检查。
+3. 路径穿越检查。
+4. 解压后大小检查。
+5. 文件数量检查。
+6. 禁止扩展名检查。
+7. `manifest.json` 格式检查。
+8. 必需文件检查。
+9. slug 和版本号检查。
+10. 封面尺寸检查。
+11. HTML 入口检查。
+12. 外部资源检查。
+13. 外部请求域名检查。
+14. JavaScript 风险规则检查。
+15. 游戏版本重复检查。
+
+### 第三步：预览
+
+生成临时预览地址：
+
+```text
+https://preview-games.example.com/{uploadId}/index.html
+```
+
+管理员确认：
+
+* 手机尺寸预览。
+* 平板尺寸预览。
+* 电脑尺寸预览。
+* 横屏预览。
+* 竖屏预览。
+* 游戏能否启动。
+* 音频能否静音。
+* 数据事件是否正常。
+* 是否出现控制台错误。
+
+### 第四步：保存为草稿
+
+保存游戏信息，但不对游客公开。
+
+### 第五步：发布
+
+发布时：
+
+1. 将游戏文件复制到不可变版本目录。
+2. 创建游戏版本记录。
+3. 更新游戏当前版本。
+4. 清理页面缓存。
+5. 写入发布日志。
+6. 在首页游戏列表中显示。
+
+## 9.2 版本目录
+
+```text
+games/
+└── memory-card/
+    ├── 1.0.0/
+    │   ├── index.html
+    │   └── assets/
+    ├── 1.1.0/
+    │   ├── index.html
+    │   └── assets/
+    └── current.json
+```
+
+`current.json` 示例：
+
+```json
+{
+  "version": "1.1.0",
+  "publishedAt": "2026-07-28T10:00:00Z"
+}
+```
+
+旧版本不得被新版本覆盖。
+
+---
+
+# 十、数据统计设计
+
+## 10.1 匿名访客
+
+游客不需要登录。
+
+首次访问时生成匿名 ID：
+
+```text
+visitor_id
+```
+
+要求：
+
+* 使用随机 UUID。
+* 不包含姓名、手机号、邮箱等信息。
+* 通过安全 Cookie 保存。
+* 后台只展示聚合数据。
+* 不在后台直接展示完整 IP。
+* 原始访问事件设置保留期限。
+
+## 10.2 统计事件
+
+```text
+PAGE_VIEW
+GAME_IMPRESSION
+GAME_OPEN
+GAME_READY
+GAME_START
+GAME_END
+GAME_ERROR
+AD_REQUEST
+AD_RESULT
+```
+
+每条事件包含：
+
+```json
+{
+  "eventType": "GAME_START",
+  "gameId": "memory-card",
+  "gameVersion": "1.0.0",
+  "visitorId": "anonymous-id",
+  "sessionId": "session-id",
+  "path": "/game/memory-card",
+  "deviceType": "mobile",
+  "browser": "Chrome",
+  "os": "Android",
+  "referrer": "",
+  "createdAt": "2026-07-28T10:00:00Z",
+  "properties": {}
+}
+```
+
+## 10.3 数据保留
+
+建议：
+
+| 数据      | 保留期限  |
+| ------- | ----- |
+| 原始访问事件  | 90 天  |
+| 游戏错误日志  | 180 天 |
+| 每日聚合数据  | 长期保留  |
+| 管理操作日志  | 长期保留  |
+| 上传临时文件  | 24 小时 |
+| 未完成上传任务 | 7 天   |
+
+---
+
+# 十一、广告预留设计
+
+## 11.1 网站广告位
+
+预留以下广告位编码：
+
+```text
+HOME_TOP
+HOME_FEED
+GAME_TOP
+GAME_BOTTOM
+GAME_DESKTOP_SIDE
+```
+
+广告关闭时：
+
+* 不请求广告平台。
+* 不加载第三方脚本。
+* 不显示空白广告框。
+* 不占用页面高度。
+* 不影响网站布局。
+
+启用广告后，由统一的 `AdSlot` 组件负责展示。
+
+所有页面不得直接写广告平台代码。
+
+## 11.2 游戏广告类型
+
+预留：
+
+```text
+BANNER
+INTERSTITIAL
+REWARDED
+```
+
+广告请求统一通过 `AD_REQUEST`。
+
+示例：
+
+```json
+{
+  "source": "panpan-game",
+  "version": "1.0",
+  "type": "AD_REQUEST",
+  "payload": {
+    "format": "rewarded",
+    "placement": "continue_after_failure",
+    "requestId": "ad-request-001"
+  }
+}
+```
+
+游戏必须同时支持以下结果：
+
+```text
+completed
+skipped
+no_fill
+error
+disabled
+```
+
+只有 `completed` 才允许发放激励奖励。
+
+## 11.3 后台广告配置
+
+广告配置页暂时只完成配置能力：
+
+* 广告总开关。
+* 网站广告开关。
+* 游戏广告开关。
+* 各广告位开关。
+* 广告供应商字段。
+* 测试模式。
+* 广告展示频率。
+* 单局最大插屏次数。
+* 激励广告冷却时间。
+
+MVP 默认：
+
+```json
+{
+  "globalEnabled": false,
+  "siteAdsEnabled": false,
+  "gameAdsEnabled": false
+}
+```
+
+---
+
+# 十二、数据库表
+
+## 12.1 admins
+
+```text
+id
+username
+password_hash
+status
+last_login_at
+created_at
+updated_at
+```
+
+## 12.2 admin_sessions
+
+```text
+id
+admin_id
+token_hash
+ip_hash
+user_agent
+expires_at
+created_at
+```
+
+## 12.3 games
+
+```text
+id
+slug
+title
+short_description
+description
+cover_url
+icon_url
+status
+current_version_id
+featured
+sort_order
+heat_score
+published_at
+created_at
+updated_at
+```
+
+## 12.4 game_versions
+
+```text
+id
+game_id
+version
+manifest_json
+entry_url
+package_url
+package_sha256
+compressed_size
+uncompressed_size
+validation_status
+validation_report_json
+created_at
+published_at
+```
+
+## 12.5 game_tags
+
+```text
+id
+name
+slug
+```
+
+## 12.6 game_tag_relations
+
+```text
+game_id
+tag_id
+```
+
+## 12.7 analytics_events
+
+```text
+id
+event_type
+game_id
+game_version_id
+visitor_id_hash
+session_id
+path
+device_type
+browser
+os
+referrer
+properties_json
+created_at
+```
+
+## 12.8 daily_game_stats
+
+```text
+date
+game_id
+page_views
+unique_visitors
+game_opens
+game_starts
+game_ends
+average_duration
+completion_rate
+repeat_rate
+error_count
+heat_score
+```
+
+## 12.9 daily_site_stats
+
+```text
+date
+page_views
+unique_visitors
+game_opens
+average_duration
+mobile_visitors
+desktop_visitors
+tablet_visitors
+```
+
+## 12.10 upload_jobs
+
+```text
+id
+admin_id
+original_filename
+storage_key
+status
+progress
+validation_report_json
+expires_at
+created_at
+updated_at
+```
+
+## 12.11 ad_config
+
+```text
+id
+global_enabled
+site_ads_enabled
+game_ads_enabled
+provider
+config_json
+updated_at
+```
+
+## 12.12 audit_logs
+
+```text
+id
+admin_id
+action
+target_type
+target_id
+detail_json
+ip_hash
+created_at
+```
+
+---
+
+# 十三、接口规划
+
+## 13.1 公共接口
+
+```text
+GET  /api/games
+GET  /api/games/{slug}
+POST /api/analytics/events
+POST /api/analytics/batch
+GET  /api/site-config
+```
+
+## 13.2 管理员接口
+
+```text
+POST   /api/admin/auth/login
+POST   /api/admin/auth/logout
+GET    /api/admin/auth/session
+
+GET    /api/admin/dashboard
+GET    /api/admin/games
+POST   /api/admin/games
+GET    /api/admin/games/{id}
+PATCH  /api/admin/games/{id}
+
+POST   /api/admin/uploads/create
+POST   /api/admin/uploads/{id}/complete
+POST   /api/admin/uploads/{id}/validate
+GET    /api/admin/uploads/{id}
+
+POST   /api/admin/games/{id}/publish
+POST   /api/admin/games/{id}/unpublish
+POST   /api/admin/games/{id}/rollback
+
+GET    /api/admin/analytics/games
+GET    /api/admin/analytics/site
+GET    /api/admin/errors
+GET    /api/admin/audit-logs
+
+GET    /api/admin/ad-config
+PUT    /api/admin/ad-config
+```
+
+所有管理员接口必须检查登录 Session 和 CSRF。
+
+统计接口必须限流，并验证事件字段，不能让任何浏览器随手塞进一吨垃圾数据。
+
+---
+
+# 十四、项目目录
+
+```text
+panpan-wonder-house/
+├── app/
+│   ├── (public)/
+│   │   ├── page.tsx
+│   │   ├── game/[slug]/page.tsx
+│   │   ├── about/page.tsx
+│   │   └── privacy/page.tsx
+│   ├── admin/
+│   │   ├── login/page.tsx
+│   │   ├── page.tsx
+│   │   ├── games/
+│   │   ├── uploads/
+│   │   ├── analytics/
+│   │   ├── errors/
+│   │   └── settings/
+│   └── api/
+├── components/
+│   ├── public/
+│   ├── admin/
+│   ├── game/
+│   └── ads/
+├── lib/
+│   ├── auth/
+│   ├── analytics/
+│   ├── database/
+│   ├── storage/
+│   ├── validation/
+│   └── security/
+├── packages/
+│   ├── game-sdk/
+│   ├── game-validator/
+│   └── shared-types/
+├── prisma/
+│   ├── schema.prisma
+│   ├── migrations/
+│   └── seed.ts
+├── public/
+├── scripts/
+├── tests/
+│   ├── unit/
+│   ├── integration/
+│   └── e2e/
+├── docs/
+│   ├── PROJECT_SPEC.md
+│   ├── GAME_PACKAGE_SPEC.md
+│   ├── GAME_BRIDGE_PROTOCOL.md
+│   ├── API.md
+│   ├── DEPLOYMENT.md
+│   └── SECURITY.md
+├── .env.example
+└── README.md
+```
+
+---
+
+# 十五、分阶段开发任务
+
+## P0：项目初始化
+
+完成：
+
+* 创建代码仓库。
+* 初始化 Next.js 和 TypeScript。
+* 配置代码格式化和检查。
+* 本机安装并启动 PostgreSQL。
+* 本机安装并启动 MinIO。
+* 创建 `.env.example`。
+* 建立基础目录。
+* 建立开发说明（不引入 Docker）。
+
+验收：
+
+```text
+npm run dev
+```
+
+能够同时连接本机 PostgreSQL 与本机 MinIO，并打开网站。
+
+## P1：数据库及基础服务
+
+完成：
+
+* 编写 Prisma Schema。
+* 创建数据库迁移。
+* 编写种子数据。
+* 封装数据库访问。
+* 封装对象存储。
+* 完成管理员 Session。
+* 完成登录限流。
+* 完成操作日志。
+
+验收：
+
+* 可以创建管理员。
+* 可以登录和退出后台。
+* 未登录无法访问后台接口。
+* 重启服务后 Session 行为正常。
+
+## P2：前台网站
+
+完成：
+
+* 首页。
+* 游戏卡片。
+* 搜索和标签筛选。
+* 游戏页面。
+* iframe 加载器。
+* 加载失败页面。
+* 手机和电脑布局。
+* 关于页面。
+* 隐私页面。
+* 基础 SEO。
+
+验收：
+
+* 320px 至 1920px 宽度正常。
+* 手机页面无横向滚动。
+* 游客全程无登录提示。
+* 点击游戏卡片可以进入游戏。
+* 浏览器刷新游戏页面仍能正常打开。
+
+## P3：游戏 SDK 和运行容器
+
+完成：
+
+* 游戏通信协议。
+* `game-bridge.js`。
+* 主站事件监听器。
+* 游戏初始化。
+* 暂停和恢复。
+* 静音。
+* 全屏。
+* 错误上报。
+* 广告空实现。
+* iframe 安全限制。
+
+验收：
+
+* 示例游戏能发送 READY、START、END。
+* 主站能记录一局游戏。
+* 广告关闭时游戏不会卡住。
+* 错误游戏不会拖垮主页面。
+
+## P4：后台游戏管理和上传
+
+完成：
+
+* 游戏列表。
+* 游戏编辑。
+* ZIP 直传对象存储。
+* 上传进度。
+* ZIP 解压。
+* 游戏包校验器。
+* 校验报告。
+* 临时预览。
+* 保存草稿。
+* 发布。
+* 下架。
+* 上传新版本。
+* 版本回滚。
+
+验收：
+
+* 合规 ZIP 可以发布。
+* 缺少 manifest 时明确报错。
+* 路径穿越 ZIP 被拒绝。
+* 超大 ZIP 被拒绝。
+* 重复版本被拒绝。
+* 回滚后旧版本能立即运行。
+* 发布新游戏不需要重新部署主站。
+
+## P5：统计后台
+
+完成：
+
+* 匿名 visitor ID。
+* Session ID。
+* 事件批量上报。
+* PV 和 UV。
+* 游戏启动和结束。
+* 平均游玩时长。
+* 完成率。
+* 设备类型。
+* 来源统计。
+* 游戏热度。
+* 每日聚合任务。
+* 数据后台页面。
+
+验收：
+
+* 同一访客重复刷新不会被错误统计为多个 UV。
+* 游戏事件能够关联正确版本。
+* 后台能够查看今日、7 日和 30 日数据。
+* 热度每天自动更新。
+* 异常统计事件不会导致接口报错。
+
+## P6：广告预留
+
+完成：
+
+* `AdSlot` 组件。
+* 广告配置表。
+* 广告后台配置页。
+* 网站广告位编码。
+* 游戏广告通信。
+* `disabled` 和 `no_fill` 返回。
+* 广告频率配置结构。
+
+验收：
+
+* 广告默认全部关闭。
+* 页面不加载任何广告脚本。
+* 页面没有空白广告区域。
+* 游戏请求广告后能立即收到 disabled。
+* 将来接广告平台时无需修改游戏通信协议。
+
+## P7：测试、安全和部署
+
+完成：
+
+* 单元测试。
+* 接口测试。
+* Playwright 端到端测试。
+* 上传恶意 ZIP 测试。
+* iframe 隔离测试。
+* 登录暴力尝试限流。
+* 数据库备份脚本。
+* 对象存储备份说明。
+* 健康检查接口。
+* 可选 Nginx 配置示例。
+* 部署文档（Node.js 直接部署，不使用 Docker）。
+
+验收：
+
+* 所有自动化测试通过。
+* 生产环境使用 HTTPS。
+* 后台 Cookie 为 HttpOnly、Secure、SameSite。
+* 日志中不输出密码和完整 Session。
+* 数据库每日备份。
+* 上传临时文件能够自动清理。
+* 网站服务重启后已发布游戏仍能访问。
+
+## P8：示例游戏和最终文档
+
+至少制作两个测试游戏：
+
+```text
+记忆翻翻乐
+接住掉落的小星星
+```
+
+两个游戏必须严格按照游戏包规范打包，用管理后台上传和发布，不允许直接复制到服务器目录。
+
+最终文档必须完整，包括：
+
+* 本地启动说明。
+* 生产部署说明。
+* 管理员创建方法。
+* 游戏包规范。
+* 游戏通信协议。
+* 游戏上传方法。
+* 数据统计口径。
+* 广告接入说明。
+* 故障排查说明。
+* 备份和恢复说明。
+
+---
+
+# 十六、自动化测试场景
+
+至少覆盖：
+
+1. 游客打开首页。
+2. 首页不出现登录提示。
+3. 游戏卡片正常加载。
+4. 点击卡片进入游戏。
+5. 游戏发送 READY。
+6. 游戏开始和结束事件被记录。
+7. 手机宽度布局正常。
+8. 管理员登录成功。
+9. 错误密码登录失败。
+10. 未登录访问后台被拦截。
+11. 正常游戏包上传成功。
+12. 非 ZIP 文件上传失败。
+13. 缺少 manifest 上传失败。
+14. 外部 CDN 资源被发现。
+15. 发布游戏后首页出现。
+16. 下架游戏后首页消失。
+17. 新版本发布成功。
+18. 游戏版本回滚成功。
+19. 广告关闭时返回 disabled。
+20. 游戏脚本报错时主页面仍能使用。
+
+---
+
+# 十七、执行 AI 工作规则
+
+执行 AI 必须遵守：
+
+1. 按 P0 至 P8 顺序开发。
+2. 不得擅自增加游客账号系统。
+3. 不得擅自接入第三方广告。
+4. 不得把游戏代码直接打包进主站。
+5. 不得跳过游戏包校验。
+6. 不得用模拟数据假装功能完成。
+7. 不得把密钥提交到 Git。
+8. 不得删除历史数据库迁移。
+9. 每个阶段完成后运行测试。
+10. 一个阶段测试通过后再进入下一阶段。
+11. 所有未完成内容必须明确标记，不允许只做一个按钮壳子。
+12. 所有重要配置必须进入环境变量。
+13. 所有接口输入必须进行 Schema 校验。
+14. 所有数据库变更必须有迁移文件。
+15. 所有公共方法和协议必须有 TypeScript 类型。
+16. 发布功能必须具备回滚能力。
+17. 所有页面必须测试手机和电脑尺寸。
+18. 游戏包规范发生变化时必须更新 `schemaVersion`。
+
+每阶段完成后，AI 必须输出：
+
+```text
+1. 本阶段完成内容
+2. 新增和修改的文件
+3. 数据库变更
+4. 接口变更
+5. 测试命令
+6. 测试结果
+7. 已知问题
+8. 下一阶段任务
+```
+
+---
+
+# 十八、首个版本完成标准
+
+只有同时满足以下条件，MVP 才算完成：
+
+* 游客可以直接访问首页。
+* 首页没有登录提示。
+* 手机和电脑均正常显示。
+* 首页可以展示多个游戏。
+* 点击游戏封面可以进入游戏。
+* 游戏在隔离 iframe 中运行。
+* 后台可以登录。
+* 后台可以上传 ZIP 游戏包。
+* 游戏包能够自动校验。
+* 管理员可以预览、发布和下架游戏。
+* 管理员可以上传新版本。
+* 管理员可以回滚版本。
+* 后台可以查看访问量和游戏热度。
+* 网站及游戏广告都处于关闭状态。
+* 广告位和广告通信协议已经预留。
+* 至少两个示例游戏通过后台上传并发布。
+* 项目能够通过本机 Node.js 方式部署（`npm run build` + `npm run start`）。
+* 项目文档和自动化测试完整。
+* 不依赖 Docker。
+
+
+# 游戏上传、更新与格式校验补充规范
+
+## 1. 游戏上传分为两种模式
+
+后台上传页面必须支持：
+
+### 模式一：上传新游戏
+
+用于网站中尚不存在的游戏。
+
+管理员操作流程：
+
+1. 点击“上传新游戏”。
+2. 选择游戏 ZIP 包。
+3. 系统自动上传并解压到临时目录。
+4. 系统执行完整格式检查。
+5. 检查通过后进入在线预览。
+6. 管理员确认标题、封面、介绍和运行效果。
+7. 点击发布。
+8. 游戏出现在前台游戏列表。
+
+新游戏的 `manifest.json` 中：
+
+* `id` 不得与已有游戏重复。
+* `slug` 不得与已有游戏重复。
+* `version` 默认从 `1.0.0` 开始。
+
+---
+
+### 模式二：更新已有游戏
+
+游戏管理列表中，每个游戏必须提供：
+
+```text
+更新游戏包
+```
+
+管理员点击后：
+
+1. 进入该游戏的更新页面。
+2. 显示当前游戏名称、当前版本和当前发布时间。
+3. 重新上传一个完整 ZIP 游戏包。
+4. 系统执行与上传新游戏完全相同的格式检查。
+5. 检查通过后生成临时预览。
+6. 管理员确认后点击“发布更新”。
+7. 新上传的游戏包成为游客访问时运行的当前游戏包。
+8. 游戏标题、封面和介绍根据后台设置或新 manifest 更新。
+9. 原游戏 URL 不变。
+
+例如：
+
+```text
+更新前：
+/game/memory-card
+
+更新后：
+/game/memory-card
+```
+
+游客不需要知道内部版本路径发生变化。
+
+## 2. 更新游戏包规则
+
+更新包必须是一个完整、可独立运行的游戏包，不能只上传修改过的几个文件。
+
+更新包要求：
+
+* `manifest.json` 中的 `id` 必须与原游戏一致。
+* `manifest.json` 中的 `slug` 必须与原游戏一致。
+* 新版本号必须高于当前版本号。
+* 必须包含完整的 `index.html`。
+* 必须包含完整资源文件。
+* 必须重新上传封面图。
+* 不允许只上传补丁文件。
+* 不允许修改游戏永久 ID。
+* 不允许通过更新操作创建另一个游戏。
+
+检查失败示例：
+
+```text
+更新失败：游戏 ID 不一致
+
+当前游戏 ID：
+memory-card
+
+上传包中的游戏 ID：
+memory-card-new
+
+请将 manifest.json 中的 id 修改为 memory-card。
+```
+
+## 3. 更新后的替换逻辑
+
+从管理员使用角度看，新包直接替换旧包。
+
+从系统实现角度必须采用安全切换方式：
+
+1. 新包先上传到临时目录。
+2. 完成格式检查。
+3. 完成预览检查。
+4. 将新包保存到新的版本目录。
+5. 更新当前运行版本指针。
+6. 游客的新请求进入新版本。
+7. 原版本暂时保留，用于紧急回滚。
+
+不得在检查完成前直接覆盖当前线上文件。
+
+不得删除当前正在运行的游戏后再上传新包，否则上传失败时游戏会直接失踪，像一个不太负责的魔术师。
+
+后台可以将这个操作统一显示为：
+
+```text
+上传新包并替换当前版本
+```
+
+## 4. 游戏版本保留
+
+后台至少保留最近 5 个已发布版本。
+
+版本记录显示：
+
+* 版本号。
+* 上传时间。
+* 发布时间。
+* 文件大小。
+* SHA-256。
+* 上传管理员。
+* 当前是否正在使用。
+* 校验结果。
+* 回滚按钮。
+
+管理员点击回滚时：
+
+1. 选择一个历史版本。
+2. 显示确认提示。
+3. 将该版本重新设置为当前版本。
+4. 不需要重新上传 ZIP。
+5. 写入后台操作日志。
+
+前台始终使用当前版本。
+
+---
+
+# 游戏包格式检查规范
+
+## 5. 检查执行时机
+
+以下操作都必须执行完整检查：
+
+* 上传新游戏。
+* 更新已有游戏。
+* 重新上传校验失败的游戏包。
+* 从草稿状态发布游戏。
+* 手动执行“重新检查”。
+
+格式检查不通过时：
+
+* 不允许发布。
+* 不允许替换当前游戏版本。
+* 不影响当前线上游戏。
+* 必须保留检查报告。
+* 管理员修改后可以重新上传。
+
+## 6. 检查结果等级
+
+检查结果分为：
+
+### ERROR
+
+必须修复，否则不允许发布。
+
+例如：
+
+* 缺少 `index.html`。
+* 缺少 `manifest.json`。
+* JSON 格式错误。
+* 游戏 ID 不一致。
+* 版本号不正确。
+* 文件路径不存在。
+* 包含禁止文件。
+* 存在路径穿越。
+* 包大小超限。
+* 入口页面无法启动。
+* 引用了未包含的资源文件。
+
+### WARNING
+
+允许发布，但需要管理员确认。
+
+例如：
+
+* 未提供游戏截图。
+* 未提供图标。
+* 封面尺寸不是推荐尺寸。
+* 游戏只支持鼠标，不支持触摸。
+* 游戏只支持横屏。
+* 首屏加载文件较大。
+* 存在未使用的大型资源文件。
+
+### INFO
+
+仅作为说明。
+
+例如：
+
+* 文件总数。
+* 解压后大小。
+* 检测到的控制方式。
+* 游戏画布尺寸。
+* 使用的音频文件数量。
+
+## 7. 错误提示格式
+
+每一个错误必须包含：
+
+| 字段   | 说明                   |
+| ---- | -------------------- |
+| 错误代码 | 稳定、可搜索的错误编号          |
+| 错误级别 | ERROR、WARNING 或 INFO |
+| 错误文件 | 出错文件的具体路径            |
+| 错误说明 | 发生了什么                |
+| 当前内容 | 实际检测到的内容             |
+| 正确要求 | 系统要求的格式              |
+| 修改建议 | 应该怎样修复               |
+
+错误示例：
+
+```text
+错误代码：MANIFEST_ENTRY_NOT_FOUND
+错误级别：ERROR
+错误文件：manifest.json
+错误字段：entry
+
+当前内容：
+"entry": "game.html"
+
+检查结果：
+压缩包内不存在 game.html。
+
+正确要求：
+entry 必须指向 ZIP 包内实际存在的 HTML 文件。
+
+修改建议：
+将 game.html 放入 ZIP 根目录，或者将 entry 修改为 index.html。
+```
+
+资源错误示例：
+
+```text
+错误代码：ASSET_FILE_NOT_FOUND
+错误级别：ERROR
+错误文件：index.html
+错误位置：第 28 行
+
+当前引用：
+./assets/images/player.png
+
+检查结果：
+ZIP 包内不存在该文件。
+
+修改建议：
+补充 assets/images/player.png，或者修改 index.html 中的资源路径。
+```
+
+外部资源错误示例：
+
+```text
+错误代码：EXTERNAL_RESOURCE_NOT_ALLOWED
+错误级别：ERROR
+错误文件：index.html
+
+检测到：
+https://cdn.example.com/game.js
+
+正确要求：
+游戏运行所需的 JavaScript、CSS、图片、字体和音频必须包含在游戏包内。
+
+修改建议：
+下载该文件并放入游戏包，改为相对路径引用。
+```
+
+## 8. 后台校验结果页面
+
+格式检查完成后，页面必须显示：
+
+* 总体结果：通过或未通过。
+* ERROR 数量。
+* WARNING 数量。
+* INFO 数量。
+* ZIP 大小。
+* 解压后大小。
+* 文件数量。
+* manifest 信息。
+* 入口文件。
+* 封面预览。
+* 外部资源检查结果。
+* 缺失资源列表。
+* 禁止文件列表。
+* 完整检查日志。
+
+支持按照以下条件筛选：
+
+```text
+全部
+仅错误
+仅警告
+仅提示
+```
+
+支持复制完整检查报告。
+
+## 9. 自动检查项目
+
+至少检查：
+
+1. 上传文件是否为 ZIP。
+2. ZIP 是否能够正常解压。
+3. ZIP 是否加密。
+4. 是否存在 ZIP 炸弹风险。
+5. 是否存在路径穿越。
+6. 压缩包是否超出大小限制。
+7. 解压后是否超出大小限制。
+8. 文件数量是否超限。
+9. 是否存在禁止扩展名。
+10. 是否存在 `manifest.json`。
+11. manifest 是否为合法 JSON。
+12. manifest 必填字段是否完整。
+13. manifest 字段类型是否正确。
+14. schemaVersion 是否支持。
+15. id 是否符合格式。
+16. slug 是否符合格式。
+17. title 是否符合长度要求。
+18. version 是否为语义化版本。
+19. 更新时 id 是否与原游戏一致。
+20. 更新时 slug 是否与原游戏一致。
+21. 更新版本号是否高于当前版本。
+22. entry 文件是否存在。
+23. cover 文件是否存在。
+24. 封面格式是否正确。
+25. 封面大小是否超限。
+26. icon 文件是否存在及格式是否正确。
+27. HTML、CSS 和 JavaScript 引用的本地资源是否存在。
+28. 是否引用外部 JavaScript。
+29. 是否引用外部 CSS。
+30. 是否引用外部图片、字体或音频。
+31. 是否存在未申报的外部网络域名。
+32. 是否存在外部 iframe。
+33. 是否使用 `eval()`。
+34. 是否使用 `new Function()`。
+35. 是否尝试访问父页面 DOM。
+36. 是否尝试修改顶层页面地址。
+37. 是否包含第三方广告脚本。
+38. 是否包含第三方统计脚本。
+39. 是否包含自动播放音频。
+40. 是否配置 viewport。
+41. 是否支持触摸操作。
+42. 是否包含游戏通信脚本。
+43. 游戏能否发送 `GAME_READY`。
+44. 游戏启动时是否产生 JavaScript 错误。
+45. 游戏是否能够在手机尺寸中正常显示。
+
+## 10. 验收标准
+
+* 更新游戏时能够直接上传完整新包。
+* 更新操作与上传新游戏的交互方式基本一致。
+* 校验失败不会影响当前线上版本。
+* 每一个阻断问题都有明确错误原因和修复建议。
+* 校验报告不得只显示“格式错误”或“上传失败”。
+* 更新成功后原游戏 URL 不变。
+* 更新成功后游客自动进入新版本。
+* 可以一键回滚到旧版本。
+* 所有更新操作写入操作日志。
+
+

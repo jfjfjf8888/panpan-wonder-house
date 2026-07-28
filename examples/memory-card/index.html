@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover"
+    />
+    <title>记忆翻翻乐</title>
+    <link rel="stylesheet" href="./css/game.css" />
+  </head>
+  <body>
+    <div id="app">
+      <div id="loader">加载中…</div>
+      <header>
+        <h1>记忆翻翻乐</h1>
+        <div class="stats">
+          <span>步数 <b id="moves">0</b></span>
+          <span>配对 <b id="pairs">0</b>/4</span>
+        </div>
+      </header>
+      <div id="board" aria-label="记忆卡片棋盘"></div>
+      <button id="startBtn" type="button">开始游戏</button>
+      <p id="tip">点击两张卡片，找出相同图案。</p>
+    </div>
+    <script src="./js/game-bridge.js"></script>
+    <script src="./js/game.js"></script>
+  </body>
+</html>

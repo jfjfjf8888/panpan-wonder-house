@@ -1,0 +1,809 @@
+你现在需要为网站 **《盼盼与熊大的妙妙屋》** 制作一个可上传、可独立运行的 HTML5 小游戏。
+
+请严格按照以下规范开发和打包。最终必须输出一个完整 ZIP 游戏包。这个 ZIP 包会被上传到网站后台并执行自动格式检查，不符合要求的包无法发布。
+
+# 一、本次游戏需求
+
+游戏名称：
+
+```text
+【填写游戏名称】
+```
+
+游戏创意和玩法：
+
+```text
+【填写具体玩法、目标、规则和脑洞】
+```
+
+特殊要求：
+
+```text
+【没有则填写“无”】
+```
+
+请先根据以上需求完成游戏设计，然后直接开发完整游戏，不要只输出设计方案或零散代码。
+
+---
+
+# 二、技术要求
+
+游戏必须是纯前端 HTML5 游戏。
+
+允许使用：
+
+* HTML。
+* CSS。
+* 原生 JavaScript。
+* Canvas 2D。
+* Web Audio API。
+* 已经完整放入游戏包内的本地前端库。
+
+禁止使用：
+
+* 服务端程序。
+* Node.js 运行环境。
+* PHP、Java、Python 等后端代码。
+* 数据库。
+* 外部 CDN。
+* 外部 JavaScript。
+* 外部 CSS。
+* 外部图片地址。
+* 外部字体地址。
+* 外部音频地址。
+* 第三方统计 SDK。
+* 第三方广告 SDK。
+* 外部 iframe。
+* `eval()`。
+* `new Function()`。
+* 明显混淆或加密的 JavaScript。
+* 必须联网才能运行的功能。
+
+游戏解压后必须能够直接从 `index.html` 启动。
+
+所有文件路径必须使用相对路径。
+
+正确：
+
+```text
+./assets/images/player.webp
+./js/game.js
+```
+
+错误：
+
+```text
+/assets/images/player.webp
+https://example.com/player.webp
+```
+
+---
+
+# 三、设备适配要求
+
+游戏必须同时支持：
+
+* Android 手机。
+* iPhone。
+* 平板。
+* Windows 电脑。
+* macOS 电脑。
+* 触摸操作。
+* 鼠标操作。
+
+存在键盘玩法时，同时支持键盘，但不能只支持键盘。
+
+页面必须包含：
+
+```html
+<meta
+  name="viewport"
+  content="width=device-width, initial-scale=1, viewport-fit=cover"
+/>
+```
+
+游戏页面要求：
+
+* 最小支持 320px 宽度。
+* 不产生横向滚动条。
+* 不依赖鼠标悬停。
+* 按钮在手机上容易点击。
+* 文字不能小到无法阅读。
+* 画布根据屏幕大小缩放。
+* 不同屏幕比例下主要内容不能被裁掉。
+* 支持手机安全区域。
+* 页面失去焦点时自动暂停。
+* 页面重新获得焦点后可以继续。
+* 横竖屏不支持时显示清楚的旋转提示。
+
+---
+
+# 四、声音要求
+
+游戏可以有背景音乐和音效，但必须满足：
+
+* 页面打开后不得立即自动播放声音。
+* 必须在玩家第一次点击或触摸后才能播放声音。
+* 必须提供静音能力。
+* 游戏暂停后停止或暂停声音。
+* 页面隐藏后暂停声音。
+* 游戏结束后不得让音频继续失控播放。
+
+所有音频文件必须包含在 ZIP 包中。
+
+---
+
+# 五、游戏包目录要求
+
+ZIP 包根目录必须直接包含以下文件，不允许外面再套一层文件夹。
+
+标准结构：
+
+```text
+/
+├── manifest.json
+├── index.html
+├── cover.webp
+├── icon.png
+├── README.md
+├── css/
+│   └── game.css
+├── js/
+│   ├── game.js
+│   └── game-bridge.js
+├── assets/
+│   ├── images/
+│   ├── audio/
+│   └── fonts/
+└── screenshots/
+    ├── 01.webp
+    └── 02.webp
+```
+
+必须包含：
+
+```text
+manifest.json
+index.html
+cover.webp
+js/game-bridge.js
+```
+
+建议包含：
+
+```text
+icon.png
+README.md
+screenshots/
+```
+
+ZIP 文件名格式：
+
+```text
+game-{slug}-v{version}.zip
+```
+
+示例：
+
+```text
+game-memory-card-v1.0.0.zip
+```
+
+---
+
+# 六、文件大小要求
+
+* ZIP 包不超过 100 MB。
+* 解压后不超过 300 MB。
+* 单个文件不超过 30 MB。
+* 文件数量不超过 2,000 个。
+* `cover.webp` 不超过 2 MB。
+* 截图最多 6 张。
+* 尽量压缩图片和音频。
+* 删除没有使用的素材。
+
+---
+
+# 七、封面及图标要求
+
+## cover.webp
+
+必须提供游戏封面：
+
+* 文件名固定为 `cover.webp`。
+* 推荐尺寸为 1200×900。
+* 宽高比为 4:3。
+* 封面中包含能够代表玩法的主要画面。
+* 可以包含游戏标题。
+* 不要放过多小字。
+* 不得使用存在版权问题的角色或素材。
+
+## icon.png
+
+建议提供：
+
+* 文件名为 `icon.png`。
+* 推荐尺寸为 512×512。
+* PNG 格式。
+* 图形简洁。
+* 在小尺寸下仍容易识别。
+
+所有美术素材必须原创、可合法使用或由 AI 生成，不得直接复制影视、动漫、游戏或其他网站素材。
+
+---
+
+# 八、manifest.json 要求
+
+必须按照以下格式生成：
+
+```json
+{
+  "schemaVersion": "1.0",
+  "id": "game-slug",
+  "slug": "game-slug",
+  "title": "游戏中文名称",
+  "shortDescription": "不超过60字的一句话游戏介绍。",
+  "description": "不超过500字的完整游戏介绍。",
+  "version": "1.0.0",
+  "author": "PanPan Lab",
+  "entry": "index.html",
+  "cover": "cover.webp",
+  "icon": "icon.png",
+  "tags": ["休闲", "益智"],
+  "orientation": "any",
+  "controls": ["touch", "mouse", "keyboard"],
+  "display": {
+    "aspectRatio": "16:9",
+    "minWidth": 320,
+    "maxWidth": 1920,
+    "supportsFullscreen": true
+  },
+  "permissions": {
+    "audio": true,
+    "storage": true,
+    "fullscreen": true,
+    "networkDomains": []
+  },
+  "analytics": {
+    "enabled": true
+  },
+  "adCapabilities": {
+    "banner": false,
+    "interstitial": true,
+    "rewarded": true
+  }
+}
+```
+
+字段规则：
+
+* `id`：使用小写英文、数字和短横线，发布后永久不变。
+* `slug`：通常与 id 相同。
+* `title`：2 至 30 个字符。
+* `shortDescription`：最多 60 个字符。
+* `description`：最多 500 个字符。
+* `version`：使用 `1.0.0` 形式。
+* `entry`：必须指向真实存在的入口文件。
+* `cover`：必须指向真实存在的 WebP 文件。
+* `tags`：最多 5 个。
+* `orientation`：只能是 `portrait`、`landscape` 或 `any`。
+* `controls`：只填写游戏实际支持的操作方式。
+* `networkDomains`：默认必须为空数组。
+* `adCapabilities`：只是预留能力，当前网站不会真正播放广告。
+
+制作新游戏时版本号使用：
+
+```text
+1.0.0
+```
+
+更新已有游戏时：
+
+* id 不得改变。
+* slug 不得改变。
+* 根据改动提高版本号。
+* 修复问题可以从 `1.0.0` 更新到 `1.0.1`。
+* 增加功能可以更新到 `1.1.0`。
+* 大规模改版可以更新到 `2.0.0`。
+
+---
+
+# 九、网站通信协议
+
+游戏运行在网站 iframe 内，必须通过 `window.parent.postMessage()` 与网站通信。
+
+所有游戏发送的消息必须使用以下公共结构：
+
+```javascript
+{
+  source: "panpan-game",
+  version: "1.0",
+  type: "事件名称",
+  payload: {}
+}
+```
+
+发送消息时使用：
+
+```javascript
+window.parent.postMessage(
+  {
+    source: "panpan-game",
+    version: "1.0",
+    type: "GAME_READY",
+    payload: {}
+  },
+  "*"
+);
+```
+
+必须支持以下事件。
+
+## 1. GAME_READY
+
+游戏资源完成加载，并且可以开始操作时发送一次：
+
+```javascript
+sendToHost("GAME_READY", {
+  gameVersion: "1.0.0"
+});
+```
+
+## 2. GAME_START
+
+玩家正式开始一局时发送：
+
+```javascript
+sendToHost("GAME_START", {
+  mode: "normal"
+});
+```
+
+不要在网页刚加载时发送，必须在玩家真正开始游戏时发送。
+
+## 3. GAME_PAUSE
+
+游戏暂停时发送：
+
+```javascript
+sendToHost("GAME_PAUSE", {});
+```
+
+## 4. GAME_RESUME
+
+游戏恢复时发送：
+
+```javascript
+sendToHost("GAME_RESUME", {});
+```
+
+## 5. SCORE_UPDATE
+
+分数发生重要变化时发送：
+
+```javascript
+sendToHost("SCORE_UPDATE", {
+  score: 300
+});
+```
+
+不要每一帧发送。
+
+## 6. LEVEL_COMPLETE
+
+完成关卡时发送：
+
+```javascript
+sendToHost("LEVEL_COMPLETE", {
+  level: 3,
+  score: 600
+});
+```
+
+## 7. GAME_END
+
+一局结束时必须发送：
+
+```javascript
+sendToHost("GAME_END", {
+  score: 850,
+  durationSeconds: 92,
+  result: "completed"
+});
+```
+
+`result` 可以使用：
+
+```text
+completed
+failed
+quit
+timeout
+```
+
+## 8. GAME_ERROR
+
+发生无法正常继续的错误时发送：
+
+```javascript
+sendToHost("GAME_ERROR", {
+  code: "RESOURCE_LOAD_FAILED",
+  message: "背景图片加载失败",
+  fatal: true
+});
+```
+
+---
+
+# 十、game-bridge.js 要求
+
+必须创建 `js/game-bridge.js`，集中封装网站通信，不要在游戏各处散落大量 `postMessage` 代码。
+
+至少实现：
+
+```javascript
+(function () {
+  "use strict";
+
+  const HOST_SOURCE = "panpan-host";
+  const GAME_SOURCE = "panpan-game";
+  const PROTOCOL_VERSION = "1.0";
+
+  let hostConfig = {
+    muted: false,
+    adsEnabled: false
+  };
+
+  function send(type, payload) {
+    window.parent.postMessage(
+      {
+        source: GAME_SOURCE,
+        version: PROTOCOL_VERSION,
+        type,
+        payload: payload || {}
+      },
+      "*"
+    );
+  }
+
+  function onHostMessage(event) {
+    const message = event.data;
+
+    if (!message || message.source !== HOST_SOURCE) {
+      return;
+    }
+
+    if (message.version !== PROTOCOL_VERSION) {
+      return;
+    }
+
+    switch (message.type) {
+      case "HOST_INIT":
+        hostConfig = {
+          ...hostConfig,
+          ...message.payload
+        };
+
+        window.dispatchEvent(
+          new CustomEvent("panpan:host-init", {
+            detail: hostConfig
+          })
+        );
+        break;
+
+      case "HOST_PAUSE":
+        window.dispatchEvent(new CustomEvent("panpan:pause"));
+        break;
+
+      case "HOST_RESUME":
+        window.dispatchEvent(new CustomEvent("panpan:resume"));
+        break;
+
+      case "AUDIO_CHANGE":
+        hostConfig.muted = Boolean(message.payload?.muted);
+
+        window.dispatchEvent(
+          new CustomEvent("panpan:audio-change", {
+            detail: {
+              muted: hostConfig.muted
+            }
+          })
+        );
+        break;
+
+      case "AD_RESULT":
+        window.dispatchEvent(
+          new CustomEvent("panpan:ad-result", {
+            detail: message.payload || {}
+          })
+        );
+        break;
+    }
+  }
+
+  window.addEventListener("message", onHostMessage);
+
+  window.PanPanGame = {
+    send,
+    ready(payload) {
+      send("GAME_READY", payload);
+    },
+    start(payload) {
+      send("GAME_START", payload);
+    },
+    pause(payload) {
+      send("GAME_PAUSE", payload);
+    },
+    resume(payload) {
+      send("GAME_RESUME", payload);
+    },
+    score(payload) {
+      send("SCORE_UPDATE", payload);
+    },
+    levelComplete(payload) {
+      send("LEVEL_COMPLETE", payload);
+    },
+    end(payload) {
+      send("GAME_END", payload);
+    },
+    error(payload) {
+      send("GAME_ERROR", payload);
+    },
+    requestAd(payload) {
+      send("AD_REQUEST", payload);
+    },
+    getHostConfig() {
+      return { ...hostConfig };
+    }
+  };
+})();
+```
+
+`index.html` 必须在游戏主脚本之前引入：
+
+```html
+<script src="./js/game-bridge.js"></script>
+<script src="./js/game.js"></script>
+```
+
+---
+
+# 十一、广告兼容要求
+
+当前网站不会实际接入广告，但游戏需要预留兼容能力。
+
+游戏可以请求：
+
+* 插屏广告 `interstitial`。
+* 激励广告 `rewarded`。
+
+请求示例：
+
+```javascript
+window.PanPanGame.requestAd({
+  format: "rewarded",
+  placement: "continue_after_failure",
+  requestId: "rewarded-001"
+});
+```
+
+网站可能返回：
+
+```text
+completed
+skipped
+no_fill
+error
+disabled
+```
+
+只有收到：
+
+```text
+completed
+```
+
+时才发放激励奖励。
+
+收到以下结果时，游戏必须正常继续，不能卡死：
+
+```text
+disabled
+no_fill
+error
+skipped
+```
+
+当前广告默认关闭，因此游戏必须完整支持无广告运行。
+
+---
+
+# 十二、本地存档要求
+
+需要保存设置、关卡或最高分时，可以使用 localStorage。
+
+所有键必须增加游戏命名空间：
+
+```text
+panpan_game_{gameId}_{key}
+```
+
+示例：
+
+```javascript
+localStorage.setItem(
+  "panpan_game_memory-card_high-score",
+  "1000"
+);
+```
+
+不得使用过于通用的名称，例如：
+
+```text
+score
+settings
+data
+```
+
+读取损坏或不存在的存档时必须使用默认值，不能导致游戏无法启动。
+
+---
+
+# 十三、错误处理要求
+
+游戏必须处理：
+
+* 图片加载失败。
+* 音频加载失败。
+* 存档内容损坏。
+* 浏览器不支持某个 API。
+* Canvas 初始化失败。
+* 未捕获 JavaScript 异常。
+* 手机横竖屏变化。
+* 页面切换到后台。
+* 用户快速重复点击。
+
+至少监听：
+
+```javascript
+window.addEventListener("error", function (event) {
+  window.PanPanGame?.error({
+    code: "UNHANDLED_ERROR",
+    message: event.message || "未知错误",
+    fatal: false
+  });
+});
+
+window.addEventListener("unhandledrejection", function (event) {
+  window.PanPanGame?.error({
+    code: "UNHANDLED_PROMISE_REJECTION",
+    message: String(event.reason || "未知异步错误"),
+    fatal: false
+  });
+});
+```
+
+---
+
+# 十四、README.md 要求
+
+README 必须说明：
+
+```text
+1. 游戏名称
+2. 游戏玩法
+3. 操作方式
+4. 支持的设备
+5. 推荐屏幕方向
+6. 游戏入口文件
+7. 当前版本
+8. 游戏事件说明
+9. 本地存档键名
+10. 使用的第三方代码或素材
+11. 已知问题
+12. 本地测试方法
+```
+
+不存在第三方代码或素材时明确写：
+
+```text
+本游戏未使用第三方代码或外部素材。
+```
+
+---
+
+# 十五、禁止文件
+
+ZIP 包中不得出现：
+
+```text
+.exe
+.dll
+.so
+.dylib
+.apk
+.ipa
+.php
+.jsp
+.asp
+.aspx
+.sh
+.bat
+.cmd
+.ps1
+.py
+.jar
+```
+
+同时不得包含：
+
+* `.git`。
+* `node_modules`。
+* 源项目构建缓存。
+* 操作系统临时文件。
+* 编辑器缓存。
+* 密钥。
+* Token。
+* 私有接口地址。
+* 无关素材。
+* 未使用的大文件。
+
+---
+
+# 十六、完成前自检
+
+在输出 ZIP 前，必须逐项检查：
+
+* ZIP 根目录是否直接包含 `index.html`。
+* ZIP 根目录是否直接包含 `manifest.json`。
+* ZIP 根目录是否直接包含 `cover.webp`。
+* 是否存在 `js/game-bridge.js`。
+* manifest 是否是合法 JSON。
+* manifest 中的所有路径是否真实存在。
+* id 与 slug 是否符合命名规则。
+* 版本号是否正确。
+* 所有资源是否使用相对路径。
+* 是否完全移除了外部 CDN。
+* 断网情况下是否能够启动。
+* 是否能够发送 `GAME_READY`。
+* 是否能够发送 `GAME_START`。
+* 是否能够发送 `GAME_END`。
+* 是否能够上报错误。
+* 手机触摸是否可操作。
+* 电脑鼠标是否可操作。
+* 320px 宽度是否正常。
+* 页面是否没有横向滚动。
+* 声音是否不会自动播放。
+* 静音是否生效。
+* 页面隐藏后是否暂停。
+* 广告 disabled 时是否能够继续。
+* 封面是否能够正常显示。
+* 控制台是否没有阻断性错误。
+* ZIP 是否没有多余的外层目录。
+
+---
+
+# 十七、最终交付要求
+
+最终必须交付：
+
+1. 一个完整可运行的 ZIP 游戏包。
+2. ZIP 文件名符合规定。
+3. 一份 ZIP 内文件清单。
+4. 一份 manifest 内容。
+5. 一份自检结果。
+6. 一段游戏玩法简介。
+7. 一段后台展示用的一句话介绍。
+8. 游戏操作说明。
+9. 已知问题说明。
+10. 更新版本时提供本次更新内容。
+
+不得只提供代码片段。
+
+不得只提供单个 HTML 文件。
+
+不得让我自行创建目录、补文件或重新打包。
+
+不得声称已经测试但实际上没有运行测试。
+
+最终 ZIP 解压后必须能够直接运行，并可以上传到《盼盼与熊大的妙妙屋》后台通过格式检查。

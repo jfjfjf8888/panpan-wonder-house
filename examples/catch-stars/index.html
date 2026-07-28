@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover"
+    />
+    <title>接住掉落的小星星</title>
+    <link rel="stylesheet" href="./css/game.css" />
+  </head>
+  <body>
+    <div id="app">
+      <div id="loader">加载中…</div>
+      <div id="hud">
+        <span>分数 <b id="score">0</b></span>
+        <span>生命 <b id="lives">5</b></span>
+      </div>
+      <canvas id="game" width="960" height="540"></canvas>
+      <button id="startBtn" type="button">开始游戏</button>
+      <p id="tip">触屏拖动 / 鼠标移动 / 左右方向键</p>
+    </div>
+    <script src="./js/game-bridge.js"></script>
+    <script src="./js/game.js"></script>
+  </body>
+</html>

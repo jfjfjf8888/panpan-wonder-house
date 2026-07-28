@@ -1,0 +1,34 @@
+{
+  "schemaVersion": "1.0",
+  "id": "memory-card",
+  "slug": "memory-card",
+  "title": "记忆翻翻乐",
+  "shortDescription": "翻开卡片，找出所有相同图案。",
+  "description": "一个适合手机和电脑游玩的记忆小游戏。翻开两张卡片，如果图案相同就会消除，尽量用更少的步数完成。",
+  "version": "1.0.1",
+  "author": "PanPan Lab",
+  "entry": "index.html",
+  "cover": "cover.webp",
+  "icon": "icon.png",
+  "tags": ["益智", "休闲"],
+  "orientation": "any",
+  "controls": ["touch", "mouse"],
+  "display": {
+    "aspectRatio": "16:9",
+    "minWidth": 320,
+    "maxWidth": 1920,
+    "supportsFullscreen": true
+  },
+  "permissions": {
+    "audio": true,
+    "storage": true,
+    "fullscreen": true,
+    "networkDomains": []
+  },
+  "analytics": { "enabled": true },
+  "adCapabilities": {
+    "banner": false,
+    "interstitial": false,
+    "rewarded": false
+  }
+}

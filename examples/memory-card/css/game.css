@@ -1,0 +1,78 @@
+:root {
+  --bg: #fff7ed;
+  --ink: #3b2f2f;
+  --accent: #e85d4c;
+  --card: #fff;
+  --back: #0f766e;
+}
+
+* { box-sizing: border-box; }
+html, body {
+  margin: 0;
+  min-height: 100%;
+  font-family: "Segoe UI", sans-serif;
+  background: radial-gradient(circle at top, #ffedd5, var(--bg));
+  color: var(--ink);
+}
+#app {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 16px;
+  padding-bottom: max(16px, env(safe-area-inset-bottom));
+}
+#loader {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: #fff7ed;
+  z-index: 10;
+  font-weight: 700;
+}
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+h1 { margin: 0; font-size: 1.4rem; }
+.stats { display: flex; gap: 12px; font-size: 0.95rem; }
+#board {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  max-width: 420px;
+  margin: 0 auto;
+}
+.card {
+  aspect-ratio: 1;
+  border: none;
+  border-radius: 16px;
+  background: var(--back);
+  color: white;
+  font-size: 1.6rem;
+  cursor: pointer;
+  box-shadow: 0 8px 18px rgba(15, 118, 110, 0.2);
+  transition: transform 0.15s ease;
+  touch-action: manipulation;
+}
+.card:active { transform: scale(0.97); }
+.card.open, .card.matched {
+  background: var(--card);
+  color: var(--ink);
+  border: 2px solid rgba(232, 93, 76, 0.25);
+}
+.card.matched { opacity: 0.75; }
+#startBtn {
+  margin-top: 14px;
+  width: 100%;
+  border: none;
+  border-radius: 999px;
+  padding: 12px 16px;
+  background: linear-gradient(135deg, #e85d4c, #c2410c);
+  color: white;
+  font-weight: 700;
+  cursor: pointer;
+}
+#tip { color: #7c6a5d; font-size: 0.9rem; }
