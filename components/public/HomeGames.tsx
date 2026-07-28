@@ -38,7 +38,7 @@ export function HomeGames({ games }: { games: GameCardData[] }) {
             value={q}
             onChange={(e) => setQ(e.target.value)}
             placeholder="搜索游戏标题…"
-            className="w-full rounded-full border border-[var(--line)] bg-white/80 px-4 py-2.5 text-sm outline-none transition duration-200 ring-[var(--brand)] focus:ring-2 sm:w-72"
+            className="w-full rounded-full border border-[var(--line)] bg-[var(--input-bg)] px-4 py-2.5 text-sm text-[var(--ink)] outline-none transition duration-200 ring-[var(--brand)] focus:ring-2 sm:w-72"
           />
         </div>
         <div className="flex flex-wrap gap-2">
@@ -48,7 +48,7 @@ export function HomeGames({ games }: { games: GameCardData[] }) {
             className={`rounded-full px-3 py-1.5 text-xs font-bold transition duration-200 ${
               tag === "all"
                 ? "bg-[var(--brand)] text-white shadow-sm"
-                : "bg-white/70 text-[var(--muted)] hover:bg-white"
+                : "bg-[var(--surface)] text-[var(--muted)] hover:bg-[var(--surface-strong)]"
             }`}
           >
             全部
@@ -61,7 +61,7 @@ export function HomeGames({ games }: { games: GameCardData[] }) {
               className={`rounded-full px-3 py-1.5 text-xs font-bold transition duration-200 ${
                 tag === slug
                   ? "bg-[var(--brand)] text-white shadow-sm"
-                  : "bg-white/70 text-[var(--muted)] hover:bg-white"
+                  : "bg-[var(--surface)] text-[var(--muted)] hover:bg-[var(--surface-strong)]"
               }`}
             >
               {name}

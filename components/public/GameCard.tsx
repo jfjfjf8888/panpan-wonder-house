@@ -51,7 +51,7 @@ export function GameCard({
             </span>
           ) : null}
           {(game.heatScore ?? 0) >= 70 ? (
-            <span className="rounded-full bg-white/90 px-2 py-0.5 text-xs font-bold text-[var(--brand-deep)]">
+            <span className="rounded-full bg-[var(--surface-strong)] px-2 py-0.5 text-xs font-bold text-[var(--brand-deep)]">
               热度 {Math.round(game.heatScore ?? 0)}
             </span>
           ) : null}

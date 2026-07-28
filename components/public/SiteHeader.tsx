@@ -1,8 +1,9 @@
 import Link from "next/link";
+import { ThemeToggle } from "@/components/theme/ThemeToggle";
 
 export function SiteHeader() {
   return (
-    <header className="safe-pad sticky top-0 z-30 border-b border-[var(--line)] bg-[rgba(255,247,237,0.82)] backdrop-blur-md">
+    <header className="safe-pad sticky top-0 z-30 border-b border-[var(--line)] bg-[var(--header-bg)] backdrop-blur-md">
       <div className="site-shell flex items-center justify-between gap-3 py-3">
         <Link
           href="/"
@@ -10,7 +11,7 @@ export function SiteHeader() {
         >
           盼盼与熊大的妙妙屋
         </Link>
-        <nav className="flex shrink-0 items-center gap-2 text-sm font-bold text-[var(--muted)] sm:gap-4">
+        <nav className="flex shrink-0 items-center gap-2 text-sm font-bold text-[var(--muted)] sm:gap-3">
           <Link
             href="/#games"
             className="transition-colors duration-200 hover:text-[var(--brand)]"
@@ -23,9 +24,10 @@ export function SiteHeader() {
           >
             关于
           </Link>
+          <ThemeToggle />
           <a
             href="/admin"
-            className="rounded-full bg-[rgba(232,93,76,0.12)] px-3 py-1.5 text-[var(--brand-deep)] transition duration-200 hover:bg-[var(--brand)] hover:text-white"
+            className="rounded-full bg-[var(--chip)] px-3 py-1.5 text-[var(--brand-deep)] transition duration-200 hover:bg-[var(--brand)] hover:text-white"
           >
             管理后台
           </a>

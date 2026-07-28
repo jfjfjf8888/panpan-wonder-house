@@ -74,7 +74,7 @@ export function AiBriefClient({ template }: { template: string }) {
           <label className="block space-y-1.5">
             <span className="text-sm font-bold">游戏名称 *</span>
             <input
-              className="w-full rounded-xl border border-[var(--line)] bg-white/80 px-3 py-2 outline-none ring-[var(--brand)] focus:ring-2"
+              className="field-input"
               value={form.title}
               onChange={(e) => update("title", e.target.value)}
               placeholder="例如：拉了坨大的"
@@ -86,7 +86,7 @@ export function AiBriefClient({ template }: { template: string }) {
           <label className="block space-y-1.5">
             <span className="text-sm font-bold">游戏创意和玩法 *</span>
             <textarea
-              className="min-h-36 w-full rounded-xl border border-[var(--line)] bg-white/80 px-3 py-2 outline-none ring-[var(--brand)] focus:ring-2"
+              className="field-input min-h-36"
               value={form.idea}
               onChange={(e) => update("idea", e.target.value)}
               placeholder="写清玩法、目标、规则和脑洞…"
@@ -97,7 +97,7 @@ export function AiBriefClient({ template }: { template: string }) {
           <label className="block space-y-1.5">
             <span className="text-sm font-bold">特殊要求</span>
             <textarea
-              className="min-h-24 w-full rounded-xl border border-[var(--line)] bg-white/80 px-3 py-2 outline-none ring-[var(--brand)] focus:ring-2"
+              className="field-input min-h-24"
               value={form.special}
               onChange={(e) => update("special", e.target.value)}
               placeholder="没有就填「无」"
@@ -110,7 +110,7 @@ export function AiBriefClient({ template }: { template: string }) {
               <label className="block space-y-1.5">
                 <span className="text-sm font-bold">建议 slug</span>
                 <input
-                  className="w-full rounded-xl border border-[var(--line)] bg-white/80 px-3 py-2 outline-none ring-[var(--brand)] focus:ring-2"
+                  className="field-input"
                   value={form.slug}
                   onChange={(e) => update("slug", e.target.value)}
                   placeholder="la-le-tuo-da-de"
@@ -120,7 +120,7 @@ export function AiBriefClient({ template }: { template: string }) {
               <label className="block space-y-1.5">
                 <span className="text-sm font-bold">一句话介绍</span>
                 <input
-                  className="w-full rounded-xl border border-[var(--line)] bg-white/80 px-3 py-2 outline-none ring-[var(--brand)] focus:ring-2"
+                  className="field-input"
                   value={form.shortDescription}
                   onChange={(e) => update("shortDescription", e.target.value)}
                   placeholder="最多 60 字"
@@ -131,7 +131,7 @@ export function AiBriefClient({ template }: { template: string }) {
               <label className="block space-y-1.5">
                 <span className="text-sm font-bold">标签</span>
                 <input
-                  className="w-full rounded-xl border border-[var(--line)] bg-white/80 px-3 py-2 outline-none ring-[var(--brand)] focus:ring-2"
+                  className="field-input"
                   value={form.tags}
                   onChange={(e) => update("tags", e.target.value)}
                   placeholder="休闲, 益智, 合成"
@@ -141,7 +141,7 @@ export function AiBriefClient({ template }: { template: string }) {
               <label className="block space-y-1.5">
                 <span className="text-sm font-bold">画面方向</span>
                 <select
-                  className="w-full rounded-xl border border-[var(--line)] bg-white/80 px-3 py-2 outline-none ring-[var(--brand)] focus:ring-2"
+                  className="field-input"
                   value={form.orientation || ""}
                   onChange={(e) =>
                     update(
@@ -160,7 +160,7 @@ export function AiBriefClient({ template }: { template: string }) {
               <label className="block space-y-1.5">
                 <span className="text-sm font-bold">画面比例</span>
                 <input
-                  className="w-full rounded-xl border border-[var(--line)] bg-white/80 px-3 py-2 outline-none ring-[var(--brand)] focus:ring-2"
+                  className="field-input"
                   value={form.aspectRatio}
                   onChange={(e) => update("aspectRatio", e.target.value)}
                   placeholder="例如 9:16 或 16:9"
@@ -170,7 +170,7 @@ export function AiBriefClient({ template }: { template: string }) {
               <label className="block space-y-1.5">
                 <span className="text-sm font-bold">补充说明</span>
                 <textarea
-                  className="min-h-20 w-full rounded-xl border border-[var(--line)] bg-white/80 px-3 py-2 outline-none ring-[var(--brand)] focus:ring-2"
+                  className="field-input min-h-20"
                   value={form.extraNotes}
                   onChange={(e) => update("extraNotes", e.target.value)}
                   placeholder="角色设定、难度、禁止事项等"

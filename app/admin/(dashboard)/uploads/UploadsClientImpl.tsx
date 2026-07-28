@@ -142,7 +142,7 @@ export default function UploadsClientImpl() {
         <label
           className={`flex cursor-pointer flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed px-4 py-8 text-center transition ${
             busy
-              ? "cursor-not-allowed border-[var(--line)] bg-white/40 opacity-60"
+              ? "cursor-not-allowed border-[var(--line)] bg-[var(--surface)] opacity-60"
               : file
                 ? "border-[var(--accent)] bg-[rgba(15,118,110,0.06)] hover:bg-[rgba(15,118,110,0.1)]"
                 : "border-[var(--brand)] bg-[rgba(232,93,76,0.06)] hover:bg-[rgba(232,93,76,0.12)]"
@@ -257,7 +257,9 @@ export default function UploadsClientImpl() {
                 key={f}
                 type="button"
                 className={`rounded-full px-3 py-1 text-xs font-bold ${
-                  filter === f ? "bg-[var(--brand)] text-white" : "bg-white"
+                  filter === f
+                    ? "bg-[var(--brand)] text-white"
+                    : "bg-[var(--surface)] text-[var(--ink)]"
                 }`}
                 onClick={() => setFilter(f)}
               >
@@ -266,7 +268,7 @@ export default function UploadsClientImpl() {
             ))}
             <button
               type="button"
-              className="rounded-full bg-white px-3 py-1 text-xs font-bold"
+              className="rounded-full bg-[var(--surface)] px-3 py-1 text-xs font-bold text-[var(--ink)]"
               onClick={() => navigator.clipboard.writeText(JSON.stringify(report, null, 2))}
             >
               复制报告

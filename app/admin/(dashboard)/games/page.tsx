@@ -36,7 +36,7 @@ const STATUS_META: Record<
   },
   DRAFT: {
     label: "草稿",
-    className: "bg-white/80 text-[var(--muted)] ring-1 ring-[var(--line)]",
+    className: "bg-[var(--surface)] text-[var(--muted)] ring-1 ring-[var(--line)]",
   },
   ARCHIVED: {
     label: "已归档",
@@ -48,7 +48,7 @@ function statusMeta(status: string) {
   return (
     STATUS_META[status] || {
       label: status,
-      className: "bg-white/80 text-[var(--muted)] ring-1 ring-[var(--line)]",
+      className: "bg-[var(--surface)] text-[var(--muted)] ring-1 ring-[var(--line)]",
     }
   );
 }
@@ -152,8 +152,8 @@ export default function AdminGamesPage() {
               return (
                 <tr
                   key={g.id}
-                  className={`border-b border-[var(--line)] transition-colors duration-200 hover:bg-white/50 ${
-                    published ? "bg-[rgba(15,118,110,0.04)]" : ""
+                  className={`border-b border-[var(--line)] transition-colors duration-200 hover:bg-[var(--surface)] ${
+                    published ? "bg-[color-mix(in_srgb,var(--accent)_8%,transparent)]" : ""
                   }`}
                 >
                   <td className="p-3">

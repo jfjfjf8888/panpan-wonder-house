@@ -2,6 +2,7 @@
 
 import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
+import { ThemeToggle } from "@/components/theme/ThemeToggle";
 
 export default function LoginForm() {
   const router = useRouter();
@@ -32,7 +33,10 @@ export default function LoginForm() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center px-4">
+    <div className="relative flex min-h-screen items-center justify-center px-4">
+      <div className="absolute right-4 top-4">
+        <ThemeToggle />
+      </div>
       <form
         onSubmit={onSubmit}
         className="soft-panel w-full max-w-md space-y-4 rounded-3xl p-8"
@@ -42,7 +46,7 @@ export default function LoginForm() {
         <label className="block space-y-1 text-sm font-bold">
           <span>用户名</span>
           <input
-            className="w-full rounded-xl border border-[var(--line)] px-3 py-2"
+            className="field-input"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
           />
@@ -51,12 +55,12 @@ export default function LoginForm() {
           <span>密码</span>
           <input
             type="password"
-            className="w-full rounded-xl border border-[var(--line)] px-3 py-2"
+            className="field-input"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
           />
         </label>
-        {error ? <p className="text-sm text-red-600">{error}</p> : null}
+        {error ? <p className="text-sm text-[var(--danger-text)]">{error}</p> : null}
         <button type="submit" className="btn btn-primary w-full" disabled={loading}>
           {loading ? "登录中…" : "登录"}
         </button>

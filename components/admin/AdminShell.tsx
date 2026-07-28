@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { adminFetch } from "@/lib/admin/client";
+import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import { ConfirmProvider } from "@/components/ui/ConfirmDialog";
 
 const links = [
@@ -37,7 +38,7 @@ export function AdminShell({
   return (
     <ConfirmProvider>
       <div className="min-h-screen lg:grid lg:grid-cols-[240px_1fr]">
-        <aside className="border-r border-[var(--line)] bg-white/70 p-4">
+        <aside className="border-r border-[var(--line)] bg-[var(--aside-bg)] p-4">
           <p className="brand-title text-xl text-[var(--brand-deep)]">妙妙屋后台</p>
           <p className="mt-1 text-xs text-[var(--muted)]">{username}</p>
           <nav className="mt-6 space-y-1">
@@ -52,8 +53,8 @@ export function AdminShell({
                   href={link.href}
                   className={`block rounded-xl px-3 py-2 text-sm font-bold ${
                     active
-                      ? "bg-[rgba(232,93,76,0.12)] text-[var(--brand-deep)]"
-                      : "hover:bg-[rgba(232,93,76,0.08)]"
+                      ? "bg-[var(--chip)] text-[var(--brand-deep)]"
+                      : "hover:bg-[var(--surface)]"
                   }`}
                 >
                   {link.label}
@@ -64,11 +65,12 @@ export function AdminShell({
         </aside>
 
         <div className="flex min-w-0 flex-col">
-          <header className="sticky top-0 z-20 flex items-center justify-between gap-3 border-b border-[var(--line)] bg-[rgba(255,247,237,0.92)] px-4 py-3 backdrop-blur-md sm:px-8">
+          <header className="sticky top-0 z-20 flex items-center justify-between gap-3 border-b border-[var(--line)] bg-[var(--header-bg)] px-4 py-3 backdrop-blur-md sm:px-8">
             <p className="truncate text-sm text-[var(--muted)]">
               已登录：<span className="font-bold text-[var(--ink)]">{username}</span>
             </p>
             <div className="flex shrink-0 items-center gap-2">
+              <ThemeToggle />
               <Link href="/" className="btn btn-secondary !px-3 !py-2 text-sm">
                 妙妙屋首页
               </Link>
