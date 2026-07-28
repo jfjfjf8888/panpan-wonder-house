@@ -82,7 +82,7 @@ export function GamePlayClient({
       {!immersive ? (
         <>
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <Link href="/" className="btn btn-secondary">
+            <Link href="/" className="back-home-link">
               ← 返回妙妙屋
             </Link>
             <div className="flex gap-2">
@@ -122,34 +122,29 @@ export function GamePlayClient({
         }
       >
         {immersive ? (
-          <div className="safe-pad absolute inset-x-0 top-0 z-20 flex items-center justify-between gap-3 bg-gradient-to-b from-black/70 to-transparent px-3 py-3">
-            <Link
-              href="/"
-              className="shrink-0 rounded-full bg-white/95 px-3 py-1.5 text-xs font-extrabold text-[var(--brand-deep)]"
-            >
+          <div className="play-chrome">
+            <Link href="/" className="play-back-btn">
               ← 返回妙妙屋
             </Link>
-            <p className="truncate text-sm font-bold text-white/95">{game.title}</p>
-            <div className="flex shrink-0 gap-2">
+            <div className="play-actions">
+              <p className="play-title-chip" title={game.title}>
+                {game.title}
+              </p>
               <button
                 type="button"
-                className="rounded-full bg-white/15 px-3 py-1.5 text-xs font-bold text-white backdrop-blur"
+                className="play-action-btn"
                 onClick={() => setMuted((v) => !v)}
               >
                 {muted ? "取消静音" : "静音"}
               </button>
-              <button
-                type="button"
-                className="rounded-full bg-white/90 px-3 py-1.5 text-xs font-bold text-[var(--brand-deep)]"
-                onClick={exitImmersive}
-              >
+              <button type="button" className="play-action-btn" onClick={exitImmersive}>
                 退出沉浸
               </button>
             </div>
           </div>
         ) : null}
 
-        <div className={immersive ? "min-h-0 flex-1 pt-12" : ""}>
+        <div className={immersive ? "min-h-0 flex-1" : ""}>
           <GameFrame
             gameId={game.id}
             slug={game.slug}

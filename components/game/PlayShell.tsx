@@ -27,20 +27,17 @@ export function PlayShell({ game }: Props) {
   }, []);
 
   return (
-    <div className="fixed inset-0 z-[100] flex h-[100dvh] w-screen flex-col bg-black">
-      <div className="safe-pad pointer-events-none absolute inset-x-0 top-0 z-20 flex items-center justify-between gap-3 bg-gradient-to-b from-black/75 to-transparent px-3 py-3">
-        <Link
-          href="/"
-          className="pointer-events-auto rounded-full bg-white/95 px-3 py-1.5 text-xs font-extrabold text-[var(--brand-deep)] shadow-md transition hover:bg-white"
-        >
+    <div className="fixed inset-0 z-[100] h-[100dvh] w-screen bg-black">
+      <div className="play-chrome">
+        <Link href="/" className="play-back-btn">
           ← 返回妙妙屋
         </Link>
-        <p className="pointer-events-none truncate text-sm font-bold text-white/90">
+        <p className="play-title-chip" title={game.title}>
           {game.title}
         </p>
       </div>
 
-      <div className="min-h-0 flex-1 pt-12">
+      <div className="h-full min-h-0">
         <GameFrame
           gameId={game.id}
           slug={game.slug}
