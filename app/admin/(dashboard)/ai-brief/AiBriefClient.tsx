@@ -194,7 +194,7 @@ export function AiBriefClient({ template }: { template: string }) {
           <textarea
             readOnly
             value={prompt}
-            className="min-h-[50vh] flex-1 resize-y rounded-xl border border-[var(--line)] bg-[rgba(255,255,255,0.65)] p-3 font-mono text-xs leading-relaxed outline-none"
+            className="field-input min-h-[50vh] flex-1 resize-y p-3 font-mono text-xs leading-relaxed text-[var(--ink)]"
           />
         </section>
       </div>
